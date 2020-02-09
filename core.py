@@ -16,7 +16,7 @@ def center_and_normalize(dataset):
 
 ################################################################################
 
-def full_correlation_integral(dataset):
+def FCI(dataset):
     """
     Compute the full correlation integral of the dataset by exact enumeration
 
@@ -33,7 +33,7 @@ def full_correlation_integral(dataset):
 
 ################################################################################
 
-def full_correlation_integral_MC(dataset,samples=500):
+def FCI_MC(dataset,samples=500):
     """
     Compute the full correlation integral of the dataset by a Monte-Carlo random sampling
 
@@ -41,6 +41,7 @@ def full_correlation_integral_MC(dataset,samples=500):
     :param samples: an integer that determines the number of pairs of points checked in the computation of the full correlation integral
     :returns: a list of shape (N(N-1)/2,2)
     """
+    samples = min( len(dataset),samples )
     rs = np.empty(0)
     n = len(dataset)
     for k in range(samples):
@@ -53,7 +54,7 @@ def full_correlation_integral_MC(dataset,samples=500):
 
 ################################################################################
 
-def analytical_full_correlation_integral(x,d,x0=1):
+def analytical_FCI(x,d,x0=1):
     """
     Compute the analytical average full correlation integral on a d-dimensional sphere
 
@@ -66,7 +67,7 @@ def analytical_full_correlation_integral(x,d,x0=1):
 
 ################################################################################
 
-def fit_full_correlation_integral(rho, samples=500):
+def fit_FCI(rho, samples=500):
     """
     xxxxxx
 
@@ -75,6 +76,23 @@ def fit_full_correlation_integral(rho, samples=500):
     :returns: a real number, or a numpy vector of real numbers
     """
 
+    samples = min( len(rho),samples )
     data = rho[np.random.choice(len(rho),samples)]
-    return scyopt.curve_fit( analytical_full_correlation_integral, data[:,0], data[:,1] )
+    fit = scyopt.curve_fit( analytical_FCI, data[:,0], data[:,1] )
+    mse = np.sqrt(np.mean([ (pt[1] - analytical_FCI(pt[0],fit[0][0],fit[0][1]))**2 for pt in data ]))
+
+    return [fit[0][0]+1,fit[0][1],mse]
+
+################################################################################
+
+def local_FCI(dataset, ks):
+    """
+    xxxxxx
+
+    :param dataset: a list of N d-dimensional vectors, i.e. a list of shape (N,d)
+    :param ks:
+    :returns:
+    """
+    return 0
+
 
