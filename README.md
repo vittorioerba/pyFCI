@@ -12,3 +12,8 @@ and install using pip
 
     cd pyFCI
     pip3 install .
+
+## Usage
+
+The code is partially commented at the moment.
+[Here](./examples/Tutorial.ipynb) you can find a tutorial.
