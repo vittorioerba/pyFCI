@@ -17,5 +17,5 @@ and install using pip
 
 ## Usage
 
-The code is partially commented at the moment.
+The [source code](pyFCI/__init__.py) is documented at the moment.
 [Here](./examples/Tutorial.ipynb) you can find a tutorial.
