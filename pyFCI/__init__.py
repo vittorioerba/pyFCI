@@ -6,10 +6,10 @@ import scipy.optimize as scyopt
 
 def center_and_normalize(dataset):
     """
-    Center and normalize a dataset so that its Euclidean barycenter is the zero vector, and each of its datapoints have norm 1. 
+    Center and normalize a **dataset** of N d-dimensional points so that its Euclidean barycenter is the zero vector, and each of its points has norm 1. 
 
-    :param dataset: a list of N d-dimensional vectors, i.e. a list of shape (N,d)
-    :returns: a list of N d-dimensional, normalized vectors, with null barycenter
+    :param dataset: vector of shape (N,d)
+    :returns: vector of shape (N,d)
     """
     mean = np.mean(dataset,axis=0)
     return np.array([ vec / np.linalg.norm(vec) for vec in dataset - mean ])
@@ -18,10 +18,10 @@ def center_and_normalize(dataset):
 
 def FCI(dataset):
     """
-    Compute the full correlation integral of the dataset by exact enumeration
+    Compute the full correlation integral of a **dataset** of N d-dimensional points by exact enumeration
 
-    :param dataset: a list of N d-dimensional vectors, i.e. a list of shape (N,d)
-    :returns: a list of shape (N(N-1)/2,2)
+    :param dataset: vector of shape (N,d)
+    :returns: vector of shape (N(N-1)/2,2)
     """
     rs = np.empty(0)
     n = len(dataset)
@@ -35,11 +35,11 @@ def FCI(dataset):
 
 def FCI_MC(dataset,samples=500):
     """
-    Compute the full correlation integral of the dataset by a Monte-Carlo random sampling
+    Compute the full correlation integral of a **dataset** of N d-dimensional points by random sampling of **samples** pair of points
 
-    :param dataset: a list of N d-dimensional vectors, i.e. a list of shape (N,d)
-    :param samples: an integer that determines the number of pairs of points checked in the computation of the full correlation integral
-    :returns: a list of shape (N(N-1)/2,2)
+    :param dataset: vector of shape (N,d)
+    :param samples: positive integer
+    :returns: vector of shape (N(N-1)/2,2)
     """
     samples = int(min( len(dataset)*( len(dataset)-1 )/2, samples ))
     rs = np.empty(0)
@@ -56,10 +56,10 @@ def FCI_MC(dataset,samples=500):
 
 def analytical_FCI(x,d,x0=1):
     """
-    Compute the analytical average full correlation integral on a d-dimensional sphere
+    Compute the analytical average full correlation integral on a **d**-dimensional sphere at **x**
 
-    :param x: a real number, or a numpy vector of real numbers
-    :param d: a real number, the dimension 
+    :param x: a real number in (0,2), or a vector of real numbers in (0,2)
+    :param d: a real positive number
     :param x0: a real number (should be close to 1). It's such that f(x0)=0.5
     :returns: a real number, or a numpy vector of real numbers
     """
@@ -69,12 +69,13 @@ def analytical_FCI(x,d,x0=1):
 
 def fit_FCI(rho, samples=500):
     """
-    Given a list of real 2D points in the domain = [0,2]x[0,1], it tries to fit them to the analytical_FCI curve.
+    Given an empirical full correlation integral **rho**, it tries to fit it to the analytical_FCI curve.
+    To avoid slow-downs, only a random sample of **samples** points is used in the fitting.
     If the fit fails, it outputs [0,0,0]
 
-    :param rho: real vector of shape (N,2)
-    :param samples: an integer, the number of points of rho to be used in the fitting procedure
-    :returns: a real number, or a numpy vector of real numbers
+    :param rho: vector of shape (N,2) of points in (0,2)x(0,1)
+    :param samples: a positive integer
+    :returns: the fitted dimension, the fitted x0 parameter and the mean square error between the fitted curve and the empirical points
     """
 
     samples = min( len(rho),samples )
@@ -94,14 +95,14 @@ def fit_FCI(rho, samples=500):
 
 def local_FCI(dataset, center, ks):
     """
-    xxxxxx
+    Given a **dataset** of N d-dimensional points, the index **center** of one of the points and a list of possible neighbourhoods **ks**, it estimates the local intrinsic dimension by using **fit_FCI()** of the reduced dataset of the first k-nearest-neighbours of **dataset[center]**, for each k in **ks**
 
-    At the moment, uses FCI_MC and fit FCI with default params
+    At the moment, it uses FCI_MC and fit FCI with default parameters
 
-    :param dataset: a list of N d-dimensional vectors, i.e. a list of shape (N,d)
-    :param center: the index of a vector in dataset
-    :param ks: list of increasing integers. Number of neighbours around dataset[center] to be checked
-    :returns:
+    :param dataset: a vector of shape (N,d)
+    :param center: the index of a point in **dataset**
+    :param ks: list of increasing positive integers
+    :returns: a vector of shape (len(ks),5). For each k in **ks**, returns the list [ k, distance between dataset[center] and the k-th neighbour, fitted dimension, fitted x0, the mean square error of the fit ] 
     """
     neighbours = dataset[np.argsort(np.linalg.norm( dataset - dataset[center], axis=1))[0:ks[-1]]]    
   
