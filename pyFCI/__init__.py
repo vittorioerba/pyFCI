@@ -1,9 +1,10 @@
 import numpy as np
 import scipy as scy
 import scipy.optimize as scyopt
+from numba import jit,njit,prange,vectorize,float64
 
 ################################################################################
-
+@njit(parallel=True,fastmath=True)
 def center_and_normalize(dataset):
     """
     Center and normalize a **dataset** of N d-dimensional points so that its Euclidean barycenter is the zero vector, and each of its points has norm 1. 
@@ -11,11 +12,18 @@ def center_and_normalize(dataset):
     :param dataset: vector of shape (N,d)
     :returns: vector of shape (N,d)
     """
-    mean = np.mean(dataset,axis=0)
-    return np.array([ vec / np.linalg.norm(vec) for vec in dataset - mean ])
+    (n1,n2) = np.shape(dataset)
+    r = np.empty((n1,n2))
+    mean = np.empty(n2)
+    for i in prange(n2):
+        mean[i] = np.mean(dataset[:,i])
+    for i in prange(n1):
+        v = dataset[i] - mean
+        r[i] = v / np.linalg.norm(v)
+    return r
 
 ################################################################################
-
+@njit(parallel=True,fastmath=True)
 def FCI(dataset):
     """
     Compute the full correlation integral of a **dataset** of N d-dimensional points by exact enumeration
@@ -23,16 +31,21 @@ def FCI(dataset):
     :param dataset: vector of shape (N,d)
     :returns: vector of shape (N(N-1)/2,2)
     """
-    rs = np.empty(0)
     n = len(dataset)
-    for i in range(n):
-        for j in range(i+1,n):
-            r = np.linalg.norm(dataset[i]-dataset[j])
-            rs = np.append(rs, r)
-    return np.transpose( [ np.sort(rs) , np.linspace(0,1,num=int(n*(n-1)/2)) ] )
+    m = int(n*(n-1)/2)
+    rs = np.empty(m)
+    for i in prange(n):
+        for j in prange(i+1,n):
+            c = int( n*(n-1)/2 - (n - i + 1)*(n-i)/2 + j - i  )
+            rs[c] = np.linalg.norm(dataset[i]-dataset[j]) 
+    rs = np.sort(rs)
+    r = np.empty((m,2))
+    for i in prange(m):
+        r[i] = np.array([ rs[i] , i*1./m ])
+    return r
 
 ################################################################################
-
+@njit(parallel=True,fastmath=True)
 def FCI_MC(dataset,samples=500):
     """
     Compute the full correlation integral of a **dataset** of N d-dimensional points by random sampling of **samples** pair of points
@@ -41,19 +54,24 @@ def FCI_MC(dataset,samples=500):
     :param samples: positive integer
     :returns: vector of shape (N(N-1)/2,2)
     """
-    samples = int(min( len(dataset)*( len(dataset)-1 )/2, samples ))
-    rs = np.empty(0)
     n = len(dataset)
-    for k in range(samples):
+    m = int(n*(n-1)/2)
+    samples = min( m, samples )
+    rs = np.empty(samples)
+    
+    for k in prange(samples):
         i = np.random.randint(0,n)
         j = np.random.randint(0,n)
-        r = np.linalg.norm(dataset[i]-dataset[j])
-        rs = np.append(rs, r)
-
-    return np.transpose( [ np.sort(rs) , np.linspace(0,1,num=int(samples)) ] )
+        rs[k] = np.linalg.norm(dataset[i]-dataset[j])
+    rs = np.sort(rs)
+    
+    r = np.empty((samples,2))
+    for i in prange(samples):
+        r[i] = np.array([ rs[i] , i*1./samples ])
+    return r
 
 ################################################################################
-
+@jit(forceobj=True,fastmath=True)
 def analytical_FCI(x,d,x0=1):
     """
     Compute the analytical average full correlation integral on a **d**-dimensional sphere at **x**
@@ -66,8 +84,8 @@ def analytical_FCI(x,d,x0=1):
     return  0.5 * ( 1 + (scy.special.gamma((1+d)/2)) / (np.sqrt(np.pi) * scy.special.gamma(d/2) ) * (-2+(x/x0)**2) * scy.special.hyp2f1( 0.5, 1-d/2, 3/2, 1/4 * (-2+(x/x0)**2)**2 ) )
 
 ################################################################################
-
-def fit_FCI(rho, samples=500):
+@jit(forceobj=True,fastmath=True)
+def fit_FCI(rho, samples=500, threshold=0.1):
     """
     Given an empirical full correlation integral **rho**, it tries to fit it to the analytical_FCI curve.
     To avoid slow-downs, only a random sample of **samples** points is used in the fitting.
@@ -77,17 +95,15 @@ def fit_FCI(rho, samples=500):
     :param samples: a positive integer
     :returns: the fitted dimension, the fitted x0 parameter and the mean square error between the fitted curve and the empirical points
     """
-
     samples = min( len(rho),samples )
     data = rho[np.random.choice(len(rho),samples)]
-    try:
-        fit = scyopt.curve_fit( analytical_FCI, data[:,0], data[:,1] )
-        mse = np.sqrt(np.mean([ (pt[1] - analytical_FCI(pt[0],fit[0][0],fit[0][1]))**2 for pt in data ]))
-        return [fit[0][0]+1,fit[0][1],mse]
-    except:
+
+    fit = scyopt.curve_fit( pyfci.analytical_FCI, data[:,0], data[:,1] )
+    if abs(fit[0][1] - 1)>threshold:
         return [0,0,0]
-
-
+    else:
+        mse = np.sqrt(np.mean([ (pt[1] - pyfci.analytical_FCI(pt[0],fit[0][0],fit[0][1]))**2 for pt in data ]))
+        return [fit[0][0]+1,fit[0][1],mse]
 
 ################################################################################
 
