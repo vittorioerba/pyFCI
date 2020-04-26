@@ -36,7 +36,7 @@ def FCI(dataset):
     rs = np.empty(m)
     for i in prange(n):
         for j in prange(i+1,n):
-            c = int( -0.5 i (1 + i - 2 n) + (j - i) - 1 )
+            c = int( -0.5 * i *  (1 + i - 2 * n) + (j - i) - 1 )
             rs[c] = np.linalg.norm(dataset[i]-dataset[j]) 
     rs = np.sort(rs)
     r = np.empty((m,2))
