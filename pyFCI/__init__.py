@@ -102,7 +102,7 @@ def fit_FCI(rho, samples=500, threshold=0.1):
     if abs(fit[0][1] - 1)>threshold:
         return [0,0,0]
     else:
-        mse = np.sqrt(np.mean([ (pt[1] - pyfci.analytical_FCI(pt[0],fit[0][0],fit[0][1]))**2 for pt in data ]))
+        mse = np.sqrt(np.mean([ (pt[1] - analytical_FCI(pt[0],fit[0][0],fit[0][1]))**2 for pt in data ]))
         return [fit[0][0]+1,fit[0][1],mse]
 
 ################################################################################
