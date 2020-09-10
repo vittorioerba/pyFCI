@@ -20,6 +20,7 @@ and install using pip
 The [source code](pyFCI/__init__.py) is documented.
 [Here](./examples/Tutorial.ipynb) you can find a tutorial.
 
-## TODO
 
-[ ] The function "analytical_FCI" breaks at dimension d ~ 340
+
+
+
