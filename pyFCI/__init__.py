@@ -2,6 +2,8 @@ import numpy as np
 import scipy as scy
 import scipy.optimize as scyopt
 from numba import jit,njit,prange,vectorize,float64
+import pyFCI 
+
 
 ################################################################################
 @njit(parallel=True,fastmath=True)
@@ -98,7 +100,7 @@ def fit_FCI(rho, samples=500, threshold=0.1):
     samples = min( len(rho),samples )
     data = rho[np.random.choice(len(rho),samples)]
 
-    fit = scyopt.curve_fit( pyfci.analytical_FCI, data[:,0], data[:,1] )
+    fit = scyopt.curve_fit( pyFCI.analytical_FCI, data[:,0], data[:,1] )
     if abs(fit[0][1] - 1)>threshold:
         return [0,0,0]
     else:
