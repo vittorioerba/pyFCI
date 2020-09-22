@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as scy
 import scipy.optimize as scyopt
-from sympy import gamma
+from sympy import gamma, Float
 from numba import jit,njit,prange,vectorize,float64
 import pyFCI
 
@@ -85,7 +85,7 @@ def analytical_FCI(x,d,x0=1):
     :param x0: a real number (should be close to 1). It's such that f(x0)=0.5
     :returns: a real number, or a numpy vector of real numbers
     """
-    return  0.5 * ( 1 + (gamma((1+d)/2)) / (np.sqrt(np.pi) * gamma(d/2) ) * (-2+(x/x0)**2) * scy.special.hyp2f1( 0.5, 1-d/2, 3/2, 1/4 * (-2+(x/x0)**2)**2 ) )
+    return  0.5 * ( 1 + float(Float((gamma((1+d)/2)) / (np.sqrt(np.pi) * gamma(d/2) ))) * (-2+(x/x0)**2) * scy.special.hyp2f1( 0.5, 1-d/2, 3/2, 1/4 * (-2+(x/x0)**2)**2 ) )
 
 ################################################################################
 @jit(forceobj=True,fastmath=True)
