@@ -11,7 +11,7 @@ setuptools.setup(
     description="A package for multiscale-full-correlation-integral intrinsic dimension estimation",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    # url="https://github.com/pypa/sampleproject",
+    url="https://github.com/vittorioerba/pyFCI",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -20,7 +20,10 @@ setuptools.setup(
         ],
     install_requires=[
         'numpy',
-        'scipy'
+        'scipy',
+        'numba',
+        'sympy',
+        'tabulate'
         ],
     python_requires='>=3.6',
 )

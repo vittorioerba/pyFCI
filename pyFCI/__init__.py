@@ -1,7 +1,11 @@
 import numpy as np
 import scipy as scy
 import scipy.optimize as scyopt
+from sympy import gamma, Float
 from numba import jit,njit,prange,vectorize,float64
+import pyFCI
+
+
 
 ################################################################################
 @njit(parallel=True,fastmath=True)
@@ -81,7 +85,7 @@ def analytical_FCI(x,d,x0=1):
     :param x0: a real number (should be close to 1). It's such that f(x0)=0.5
     :returns: a real number, or a numpy vector of real numbers
     """
-    return  0.5 * ( 1 + (scy.special.gamma((1+d)/2)) / (np.sqrt(np.pi) * scy.special.gamma(d/2) ) * (-2+(x/x0)**2) * scy.special.hyp2f1( 0.5, 1-d/2, 3/2, 1/4 * (-2+(x/x0)**2)**2 ) )
+    return  0.5 * ( 1 + float(Float((gamma((1+d)/2)) / (np.sqrt(np.pi) * gamma(d/2) ))) * (-2+(x/x0)**2) * scy.special.hyp2f1( 0.5, 1-d/2, 3/2, 1/4 * (-2+(x/x0)**2)**2 ) )
 
 ################################################################################
 @jit(forceobj=True,fastmath=True)
@@ -98,7 +102,11 @@ def fit_FCI(rho, samples=500, threshold=0.1):
     samples = min( len(rho),samples )
     data = rho[np.random.choice(len(rho),samples)]
 
+<<<<<<< HEAD
     fit = scyopt.curve_fit( analytical_FCI, data[:,0], data[:,1] )
+=======
+    fit = scyopt.curve_fit( pyFCI.analytical_FCI, data[:,0], data[:,1] )
+>>>>>>> 9518368db00f6d8e064ce8d9205202ce3205c675
     if abs(fit[0][1] - 1)>threshold:
         return [0,0,0]
     else:
