@@ -102,11 +102,7 @@ def fit_FCI(rho, samples=500, threshold=0.1):
     samples = min( len(rho),samples )
     data = rho[np.random.choice(len(rho),samples)]
 
-<<<<<<< HEAD
     fit = scyopt.curve_fit( analytical_FCI, data[:,0], data[:,1] )
-=======
-    fit = scyopt.curve_fit( pyFCI.analytical_FCI, data[:,0], data[:,1] )
->>>>>>> 9518368db00f6d8e064ce8d9205202ce3205c675
     if abs(fit[0][1] - 1)>threshold:
         return [0,0,0]
     else:
